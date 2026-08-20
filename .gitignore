@@ -1,0 +1,46 @@
+# Backend (Java/Gradle)
+backend/build/
+backend/.gradle/
+backend/bin/
+backend/out/
+backend/*.log
+backend/.idea/
+backend/*.iml
+backend/*.iws
+
+# Frontend (Angular/Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.vscode/
+frontend/*.log
+
+# Database
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~

@@ -1,0 +1,146 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { EmployeeService } from '../../services/employee.service';
+import { Employee, PageResponse } from '../../models/employee.model';
+import { debounceTime, Subject } from 'rxjs';
+
+@Component({
+  selector: 'app-employee-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './employee-list.component.html',
+  styleUrls: ['./employee-list.component.scss']
+})
+export class EmployeeListComponent implements OnInit {
+  employees: Employee[] = [];
+  loading = true;
+  error: string | null = null;
+
+  // Pagination
+  currentPage = 0;
+  pageSize = 20;
+  totalElements = 0;
+  totalPages = 0;
+
+  // Search and filters
+  searchTerm = '';
+  selectedDepartment = '';
+  selectedCountry = '';
+  private searchSubject = new Subject<string>();
+
+  departments = ['Engineering', 'Sales', 'Marketing', 'Finance', 'Human Resources', 'Operations', 'Customer Support', 'Product Management', 'Legal'];
+  countries = ['United States', 'India', 'United Kingdom', 'Canada', 'Germany', 'Singapore', 'Australia', 'France', 'Netherlands'];
+
+  constructor(private employeeService: EmployeeService) {}
+
+  ngOnInit(): void {
+    this.loadEmployees();
+    
+    // Debounce search input
+    this.searchSubject.pipe(
+      debounceTime(300)
+    ).subscribe(term => {
+      this.searchTerm = term;
+      this.currentPage = 0;
+      this.loadEmployees();
+    });
+  }
+
+  loadEmployees(): void {
+    this.loading = true;
+    this.error = null;
+
+    if (this.searchTerm || this.selectedDepartment || this.selectedCountry) {
+      this.employeeService.searchEmployees(
+        this.searchTerm || undefined,
+        this.selectedDepartment || undefined,
+        this.selectedCountry || undefined,
+        undefined,
+        undefined,
+        this.currentPage,
+        this.pageSize
+      ).subscribe({
+        next: (response) => this.handleResponse(response),
+        error: (err) => this.handleError(err)
+      });
+    } else {
+      this.employeeService.getEmployees(this.currentPage, this.pageSize).subscribe({
+        next: (response) => this.handleResponse(response),
+        error: (err) => this.handleError(err)
+      });
+    }
+  }
+
+  private handleResponse(response: PageResponse<Employee>): void {
+    this.employees = response.content;
+    this.totalElements = response.totalElements || response.totalSize || 0;
+    this.totalPages = response.totalPages || Math.ceil((response.totalElements || response.totalSize || 0) / this.pageSize);
+    // Handle different response formats from backend
+    if (response.page !== undefined) {
+      this.currentPage = response.page;
+    } else if (response.pageable?.number !== undefined) {
+      this.currentPage = response.pageable.number;
+    }
+    this.loading = false;
+  }
+
+  private handleError(err: any): void {
+    this.error = 'Failed to load employees';
+    this.loading = false;
+    console.error('Error loading employees:', err);
+  }
+
+  onSearchChange(term: string): void {
+    this.searchSubject.next(term);
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 0;
+    this.loadEmployees();
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.selectedDepartment = '';
+    this.selectedCountry = '';
+    this.currentPage = 0;
+    this.loadEmployees();
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadEmployees();
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadEmployees();
+    }
+  }
+
+  deleteEmployee(employee: Employee): void {
+    if (confirm(`Are you sure you want to delete ${employee.firstName} ${employee.lastName}?`)) {
+      this.employeeService.deleteEmployee(employee.id!).subscribe({
+        next: () => {
+          this.loadEmployees();
+        },
+        error: (err) => {
+          alert('Failed to delete employee');
+          console.error('Error deleting employee:', err);
+        }
+      });
+    }
+  }
+
+  formatCurrency(value: number, currency: string): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD'
+    }).format(value);
+  }
+}

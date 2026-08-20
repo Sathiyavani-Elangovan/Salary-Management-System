@@ -1,0 +1,44 @@
+micronaut:
+  application:
+    name: salaryManagementBackend
+  server:
+    port: 8080
+    cors:
+      enabled: true
+      configurations:
+        web:
+          allowedOrigins:
+            - http://localhost:4200
+          allowedMethods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allowedHeaders:
+            - Content-Type
+            - Authorization
+  
+datasources:
+  default:
+    url: jdbc:sqlite:./data/employees.db
+    driverClassName: org.sqlite.JDBC
+    dialect: SQLITE
+    schema-generate: CREATE_DROP
+    
+jpa:
+  default:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+        show_sql: false
+        format_sql: true
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+
+logger:
+  levels:
+    com.acme.salary: INFO
+    io.micronaut: INFO
+    io.micronaut.http.server: DEBUG
+    io.micronaut.runtime: DEBUG

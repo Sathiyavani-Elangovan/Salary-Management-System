@@ -1,0 +1,173 @@
+<div class="form-container">
+  <h1>{{ isEditMode ? 'Edit Employee' : 'Add New Employee' }}</h1>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()" class="employee-form">
+    <div class="form-grid">
+      <!-- Employee Code -->
+      <div class="form-group">
+        <label for="employeeCode">Employee Code *</label>
+        <input id="employeeCode" type="text" formControlName="employeeCode" 
+               [class.invalid]="isFieldInvalid('employeeCode')" />
+        <span class="error" *ngIf="isFieldInvalid('employeeCode')">
+          {{ getFieldError('employeeCode') }}
+        </span>
+      </div>
+
+      <!-- First Name -->
+      <div class="form-group">
+        <label for="firstName">First Name *</label>
+        <input id="firstName" type="text" formControlName="firstName"
+               [class.invalid]="isFieldInvalid('firstName')" />
+        <span class="error" *ngIf="isFieldInvalid('firstName')">
+          {{ getFieldError('firstName') }}
+        </span>
+      </div>
+
+      <!-- Last Name -->
+      <div class="form-group">
+        <label for="lastName">Last Name *</label>
+        <input id="lastName" type="text" formControlName="lastName"
+               [class.invalid]="isFieldInvalid('lastName')" />
+        <span class="error" *ngIf="isFieldInvalid('lastName')">
+          {{ getFieldError('lastName') }}
+        </span>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input id="email" type="email" formControlName="email"
+               [class.invalid]="isFieldInvalid('email')" />
+        <span class="error" *ngIf="isFieldInvalid('email')">
+          {{ getFieldError('email') }}
+        </span>
+      </div>
+
+      <!-- Department -->
+      <div class="form-group">
+        <label for="department">Department *</label>
+        <select id="department" formControlName="department"
+                [class.invalid]="isFieldInvalid('department')">
+          <option value="">Select Department</option>
+          <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+        </select>
+        <span class="error" *ngIf="isFieldInvalid('department')">
+          {{ getFieldError('department') }}
+        </span>
+      </div>
+
+      <!-- Country -->
+      <div class="form-group">
+        <label for="country">Country *</label>
+        <select id="country" formControlName="country"
+                [class.invalid]="isFieldInvalid('country')">
+          <option value="">Select Country</option>
+          <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+        </select>
+        <span class="error" *ngIf="isFieldInvalid('country')">
+          {{ getFieldError('country') }}
+        </span>
+      </div>
+
+      <!-- Job Title -->
+      <div class="form-group full-width">
+        <label for="jobTitle">Job Title *</label>
+        <input id="jobTitle" type="text" formControlName="jobTitle"
+               [class.invalid]="isFieldInvalid('jobTitle')" />
+        <span class="error" *ngIf="isFieldInvalid('jobTitle')">
+          {{ getFieldError('jobTitle') }}
+        </span>
+      </div>
+
+      <!-- Salary -->
+      <div class="form-group">
+        <label for="salary">Salary *</label>
+        <input id="salary" type="number" formControlName="salary"
+               [class.invalid]="isFieldInvalid('salary')" />
+        <span class="error" *ngIf="isFieldInvalid('salary')">
+          {{ getFieldError('salary') }}
+        </span>
+      </div>
+
+      <!-- Currency -->
+      <div class="form-group">
+        <label for="currency">Currency *</label>
+        <select id="currency" formControlName="currency"
+                [class.invalid]="isFieldInvalid('currency')">
+          <option *ngFor="let curr of currencies" [value]="curr">{{ curr }}</option>
+        </select>
+        <span class="error" *ngIf="isFieldInvalid('currency')">
+          {{ getFieldError('currency') }}
+        </span>
+      </div>
+
+      <!-- Date Joined -->
+      <div class="form-group">
+        <label for="dateJoined">Date Joined *</label>
+        <input id="dateJoined" type="date" formControlName="dateJoined"
+               [class.invalid]="isFieldInvalid('dateJoined')" />
+        <span class="error" *ngIf="isFieldInvalid('dateJoined')">
+          {{ getFieldError('dateJoined') }}
+        </span>
+      </div>
+
+      <!-- Gender -->
+      <div class="form-group">
+        <label for="gender">Gender *</label>
+        <select id="gender" formControlName="gender"
+                [class.invalid]="isFieldInvalid('gender')">
+          <option value="">Select Gender</option>
+          <option *ngFor="let g of genders" [value]="g">{{ g }}</option>
+        </select>
+        <span class="error" *ngIf="isFieldInvalid('gender')">
+          {{ getFieldError('gender') }}
+        </span>
+      </div>
+
+      <!-- Experience Years -->
+      <div class="form-group">
+        <label for="experienceYears">Experience (Years) *</label>
+        <input id="experienceYears" type="number" formControlName="experienceYears"
+               [class.invalid]="isFieldInvalid('experienceYears')" />
+        <span class="error" *ngIf="isFieldInvalid('experienceYears')">
+          {{ getFieldError('experienceYears') }}
+        </span>
+      </div>
+
+      <!-- Performance Rating -->
+      <div class="form-group">
+        <label for="performanceRating">Performance Rating *</label>
+        <select id="performanceRating" formControlName="performanceRating"
+                [class.invalid]="isFieldInvalid('performanceRating')">
+          <option value="">Select Rating</option>
+          <option *ngFor="let rating of performanceRatings" [value]="rating">{{ rating }}</option>
+        </select>
+        <span class="error" *ngIf="isFieldInvalid('performanceRating')">
+          {{ getFieldError('performanceRating') }}
+        </span>
+      </div>
+
+      <!-- Is Active -->
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" formControlName="isActive" />
+          Active Employee
+        </label>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="submit" [disabled]="loading" class="btn-primary">
+        {{ loading ? 'Saving...' : (isEditMode ? 'Update Employee' : 'Create Employee') }}
+      </button>
+      <button type="button" (click)="onCancel()" class="btn-secondary">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

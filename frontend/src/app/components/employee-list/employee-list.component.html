@@ -1,0 +1,162 @@
+<div class="page-container">
+  <!-- Professional Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Employee Management</h1>
+        <p class="header-subtitle">Manage and track employee information</p>
+      </div>
+      <a routerLink="/employees/new" class="btn btn-primary">
+        <span class="btn-icon">+</span>
+        Add Employee
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <h2>Filter & Search</h2>
+    </div>
+    <div class="filter-controls">
+      <div class="filter-group">
+        <label for="searchInput">Search by Name</label>
+        <input 
+          id="searchInput"
+          type="text" 
+          placeholder="Enter employee name" 
+          [value]="searchTerm"
+          (input)="onSearchChange($any($event.target).value)"
+          class="form-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label for="deptSelect">Department</label>
+        <select 
+          id="deptSelect"
+          [(ngModel)]="selectedDepartment" 
+          (change)="onFilterChange()"
+          class="form-select"
+        >
+          <option value="">All Departments</option>
+          <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="countrySelect">Country</label>
+        <select 
+          id="countrySelect"
+          [(ngModel)]="selectedCountry" 
+          (change)="onFilterChange()"
+          class="form-select"
+        >
+          <option value="">All Countries</option>
+          <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group filter-actions">
+        <label>&nbsp;</label>
+        <button (click)="clearFilters()" class="btn btn-secondary">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="state-container">
+    <div class="loader"></div>
+    <p class="state-text">Loading employee data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="state-container state-error">
+    <p class="state-text">{{ error }}</p>
+    <button (click)="loadEmployees()" class="btn btn-primary">Retry</button>
+  </div>
+
+  <!-- Results -->
+  <div *ngIf="!loading && !error" class="content-section">
+    <div class="results-bar">
+      <div class="results-info">
+        <span class="results-count">{{ totalElements }} employees</span>
+        <span class="results-details">Showing {{ employees.length }} of {{ totalElements }} results</span>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Employee Code</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Country</th>
+            <th>Job Title</th>
+            <th>Salary</th>
+            <th>Experience</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let employee of employees" class="table-row">
+            <td class="code-cell">{{ employee.employeeCode }}</td>
+            <td class="name-cell">{{ employee.firstName }} {{ employee.lastName }}</td>
+            <td class="email-cell">{{ employee.email }}</td>
+            <td>{{ employee.department }}</td>
+            <td>{{ employee.country }}</td>
+            <td>{{ employee.jobTitle }}</td>
+            <td class="salary-cell">{{ formatCurrency(employee.salary, employee.currency) }}</td>
+            <td class="experience-cell">{{ employee.experienceYears }} years</td>
+            <td class="actions-col">
+              <div class="action-buttons">
+                <a [routerLink]="['/employees', employee.id]" class="btn-action btn-view" title="View Details">
+                  View
+                </a>
+                <a [routerLink]="['/employees', employee.id, 'edit']" class="btn-action btn-edit" title="Edit">
+                  Edit
+                </a>
+                <button (click)="deleteEmployee(employee)" class="btn-action btn-delete" title="Delete">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container">
+      <div class="pagination">
+        <button 
+          (click)="previousPage()" 
+          [disabled]="currentPage === 0"
+          class="btn btn-pagination"
+        >
+          ← Previous
+        </button>
+
+        <div class="page-indicator">
+          <span class="page-text">Page</span>
+          <span class="page-number">{{ currentPage + 1 }}</span>
+          <span class="page-text">of</span>
+          <span class="page-total">{{ totalPages || 1 }}</span>
+        </div>
+
+        <button 
+          (click)="nextPage()" 
+          [disabled]="currentPage >= (totalPages || 1) - 1"
+          class="btn btn-pagination"
+        >
+          Next →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

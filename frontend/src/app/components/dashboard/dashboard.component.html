@@ -1,0 +1,151 @@
+<div class="page-container">
+  <!-- Professional Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Analytics Dashboard</h1>
+        <p class="header-subtitle">Workforce metrics and insights</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="state-container">
+    <div class="loader"></div>
+    <p class="state-text">Loading analytics data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="state-container state-error">
+    <p class="state-text">{{ error }}</p>
+    <button (click)="loadAnalytics()" class="btn btn-primary">Reload Data</button>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="analytics && !loading" class="dashboard-content">
+    
+    <!-- Key Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card metric-primary">
+        <div class="metric-label">Total Employees</div>
+        <div class="metric-value">{{ analytics.totalEmployees | number }}</div>
+      </div>
+
+      <div class="metric-card metric-success">
+        <div class="metric-label">Total Payroll</div>
+        <div class="metric-value">{{ formatCurrency(analytics.totalPayroll) }}</div>
+      </div>
+
+      <div class="metric-card metric-info">
+        <div class="metric-label">Average Salary</div>
+        <div class="metric-value">{{ formatCurrency(analytics.averageSalary) }}</div>
+      </div>
+
+      <div class="metric-card metric-warning">
+        <div class="metric-label">Median Salary</div>
+        <div class="metric-value">{{ formatCurrency(analytics.medianSalary) }}</div>
+      </div>
+    </div>
+
+    <!-- Salary Range -->
+    <div class="info-card">
+      <div class="card-header">
+        <h2 class="card-title">Salary Range</h2>
+      </div>
+      <div class="card-content">
+        <div class="range-display">
+          <div class="range-item">
+            <span class="range-label">Minimum</span>
+            <span class="range-value">{{ formatCurrency(analytics.minSalary) }}</span>
+          </div>
+          <div class="range-divider">—</div>
+          <div class="range-item">
+            <span class="range-label">Maximum</span>
+            <span class="range-value">{{ formatCurrency(analytics.maxSalary) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breakdown Sections -->
+    <div class="breakdown-grid">
+      <!-- Department Breakdown -->
+      <div class="info-card">
+        <div class="card-header">
+          <h2 class="card-title">Department Breakdown</h2>
+        </div>
+        <div class="card-content">
+          <div class="breakdown-list">
+            <div *ngFor="let dept of getDepartmentNames()" class="breakdown-item">
+              <div class="breakdown-header">
+                <h3>{{ dept }}</h3>
+              </div>
+              <div class="breakdown-stats">
+                <div class="stat-row">
+                  <span class="stat-label">Employees:</span>
+                  <span class="stat-value">{{ analytics.departmentBreakdown[dept].count | number }}</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Avg. Salary:</span>
+                  <span class="stat-value">{{ formatCurrency(analytics.departmentBreakdown[dept].averageSalary) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Country Breakdown -->
+      <div class="info-card">
+        <div class="card-header">
+          <h2 class="card-title">Country Breakdown</h2>
+        </div>
+        <div class="card-content">
+          <div class="breakdown-list">
+            <div *ngFor="let country of getCountryNames()" class="breakdown-item">
+              <div class="breakdown-header">
+                <h3>{{ country }}</h3>
+              </div>
+              <div class="breakdown-stats">
+                <div class="stat-row">
+                  <span class="stat-label">Employees:</span>
+                  <span class="stat-value">{{ analytics.countryBreakdown[country].count | number }}</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Avg. Salary:</span>
+                  <span class="stat-value">{{ formatCurrency(analytics.countryBreakdown[country].averageSalary) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Salary Distribution -->
+    <div class="info-card">
+      <div class="card-header">
+        <h2 class="card-title">Salary Distribution</h2>
+      </div>
+      <div class="card-content">
+        <div class="distribution-chart">
+          <div *ngFor="let range of getSalaryRanges()" class="distribution-item">
+            <div class="distribution-label">{{ range }}</div>
+            <div class="distribution-bar-wrapper">
+              <div 
+                class="distribution-bar" 
+                [style.width.%]="(analytics.salaryDistribution[range] / analytics.totalEmployees) * 100"
+              >
+                <span class="bar-label">
+                  {{ ((analytics.salaryDistribution[range] / analytics.totalEmployees) * 100).toFixed(1) }}%
+                </span>
+              </div>
+            </div>
+            <div class="distribution-count">{{ analytics.salaryDistribution[range] | number }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
