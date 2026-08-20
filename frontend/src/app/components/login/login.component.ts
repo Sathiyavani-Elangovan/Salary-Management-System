@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -19,7 +20,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {
     // Redirect if already logged in
     if (this.authService.isAuthenticated) {
@@ -43,11 +45,15 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         this.loading = false;
-        this.router.navigate(['/']);
+        this.notificationService.success(`Welcome back, ${response.username}!`);
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 500);
       },
       error: (error) => {
         this.loading = false;
         this.errorMessage = 'Invalid username or password';
+        this.notificationService.error(this.errorMessage);
         console.error('Login error:', error);
       }
     });

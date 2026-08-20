@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EmployeeService } from '../../services/employee.service';
 import { Employee } from '../../models/employee.model';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-employee-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './employee-form.component.html',
   styleUrls: ['./employee-form.component.scss']
 })
@@ -29,7 +30,8 @@ export class EmployeeFormComponent implements OnInit {
     private fb: FormBuilder,
     private employeeService: EmployeeService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {
     this.employeeForm = this.fb.group({
       employeeCode: ['', [Validators.required, Validators.minLength(3)]],
@@ -53,8 +55,13 @@ export class EmployeeFormComponent implements OnInit {
     this.employeeId = this.route.snapshot.paramMap.get('id');
     this.isEditMode = this.route.snapshot.url[this.route.snapshot.url.length - 1].path === 'edit';
 
-    if (this.employeeId && this.isEditMode) {
+    // Load employee data if we have an ID (for both view and edit modes)
+    if (this.employeeId) {
       this.loadEmployee();
+      // Disable form if not in edit mode (view only)
+      if (!this.isEditMode) {
+        this.employeeForm.disable();
+      }
     }
   }
 
@@ -107,17 +114,43 @@ export class EmployeeFormComponent implements OnInit {
 
     operation.subscribe({
       next: () => {
-        this.router.navigate(['/employees']);
+        const successMessage = this.isEditMode 
+          ? `Employee ${employeeData.firstName} ${employeeData.lastName} updated successfully!`
+          : `Employee ${employeeData.firstName} ${employeeData.lastName} created successfully!`;
+        
+        this.notificationService.success(successMessage);
+        
+        // Navigate after a short delay to let user see the notification
+        setTimeout(() => {
+          this.router.navigate(['/employees']);
+        }, 500);
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to save employee';
-        this.loading = false;
         console.error('Error saving employee:', err);
+        
+        // Parse validation errors from backend
+        if (err.error?._embedded?.errors) {
+          const errors = err.error._embedded.errors;
+          this.error = errors.map((e: any) => e.message).join('; ');
+        } else if (err.error?.message) {
+          this.error = err.error.message;
+        } else if (err.status === 400) {
+          this.error = 'Validation error: Please check all fields and try again';
+        } else {
+          this.error = 'Failed to save employee. Please try again.';
+        }
+        
+        this.notificationService.error(this.error || 'Failed to save employee');
+        this.loading = false;
       }
     });
   }
 
   onCancel(): void {
+    this.goBack();
+  }
+
+  goBack(): void {
     this.router.navigate(['/employees']);
   }
 

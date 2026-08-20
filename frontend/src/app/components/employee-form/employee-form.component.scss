@@ -4,9 +4,41 @@
   padding: 20px;
 }
 
+.header-with-back {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.back-button {
+  background: #ecf0f1;
+  border: 1px solid #bdc3c7;
+  color: #2c3e50;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-button:hover {
+  background: #bdc3c7;
+  transform: translateX(-3px);
+}
+
+.back-button:active {
+  transform: translateX(-1px);
+}
+
 h1 {
   color: #333;
-  margin-bottom: 30px;
+  margin: 0;
+  flex: 1;
 }
 
 .error-message {

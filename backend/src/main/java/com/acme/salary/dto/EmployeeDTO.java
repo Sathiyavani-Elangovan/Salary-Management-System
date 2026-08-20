@@ -37,7 +37,7 @@ public class EmployeeDTO {
 
     @NotNull(message = "Salary is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Salary must be greater than 0")
-    @DecimalMax(value = "1000000.0", message = "Salary must be less than 1,000,000")
+    @DecimalMax(value = "999999999999.99", message = "Salary exceeds maximum allowed value")
     private BigDecimal salary;
 
     @NotBlank(message = "Currency is required")

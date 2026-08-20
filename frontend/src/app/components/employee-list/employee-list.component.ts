@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { EmployeeService } from '../../services/employee.service';
 import { Employee, PageResponse } from '../../models/employee.model';
 import { debounceTime, Subject } from 'rxjs';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-employee-list',
@@ -33,7 +34,10 @@ export class EmployeeListComponent implements OnInit {
   departments = ['Engineering', 'Sales', 'Marketing', 'Finance', 'Human Resources', 'Operations', 'Customer Support', 'Product Management', 'Legal'];
   countries = ['United States', 'India', 'United Kingdom', 'Canada', 'Germany', 'Singapore', 'Australia', 'France', 'Netherlands'];
 
-  constructor(private employeeService: EmployeeService) {}
+  constructor(
+    private employeeService: EmployeeService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadEmployees();
@@ -127,10 +131,13 @@ export class EmployeeListComponent implements OnInit {
     if (confirm(`Are you sure you want to delete ${employee.firstName} ${employee.lastName}?`)) {
       this.employeeService.deleteEmployee(employee.id!).subscribe({
         next: () => {
+          this.notificationService.success(
+            `Employee ${employee.firstName} ${employee.lastName} deleted successfully!`
+          );
           this.loadEmployees();
         },
         error: (err) => {
-          alert('Failed to delete employee');
+          this.notificationService.error('Failed to delete employee. Please try again.');
           console.error('Error deleting employee:', err);
         }
       });
