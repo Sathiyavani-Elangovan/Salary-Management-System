@@ -1,12 +1,15 @@
 package com.acme.salary.util;
 
 import com.acme.salary.model.Employee;
+import com.acme.salary.model.User;
 import com.acme.salary.repository.EmployeeRepository;
+import com.acme.salary.repository.UserRepository;
 import io.micronaut.context.event.ApplicationEventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,6 +25,8 @@ public class DataSeeder implements ApplicationEventListener<ServerStartupEvent> 
     private static final Random random = new Random();
 
     private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // Sample data arrays
     private static final String[] FIRST_NAMES = {
@@ -86,12 +91,17 @@ public class DataSeeder implements ApplicationEventListener<ServerStartupEvent> 
     };
     private static final String[] CURRENCIES = {"USD", "INR", "GBP", "CAD", "EUR", "SGD", "AUD"};
 
-    public DataSeeder(EmployeeRepository employeeRepository) {
+    public DataSeeder(EmployeeRepository employeeRepository, UserRepository userRepository) {
         this.employeeRepository = employeeRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public void onApplicationEvent(ServerStartupEvent event) {
+        // Seed default users
+        seedDefaultUsers();
+        
+        // Seed employees
         long count = employeeRepository.count();
         if (count < 10000) {
             LOG.info("Seeding database with employee data...");
@@ -99,6 +109,22 @@ public class DataSeeder implements ApplicationEventListener<ServerStartupEvent> 
             LOG.info("Database seeding completed!");
         } else {
             LOG.info("Database already contains {} employees. Skipping seed.", count);
+        }
+    }
+
+    private void seedDefaultUsers() {
+        // Check and create HR user
+        if (!userRepository.existsByUsername("hruser")) {
+            User hr = new User();
+            hr.setUsername("hruser");
+            hr.setEmail("hr@acme.com");
+            hr.setPassword(passwordEncoder.encode("hr123"));
+            hr.setRole("HR");
+            hr.setActive(true);
+            userRepository.save(hr);
+            LOG.info("Created HR user (hruser/hr123)");
+        } else {
+            LOG.info("HR user already exists. Skipping user seed.");
         }
     }
 

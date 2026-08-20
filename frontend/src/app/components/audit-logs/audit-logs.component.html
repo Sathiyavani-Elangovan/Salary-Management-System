@@ -1,0 +1,67 @@
+<div class="audit-logs-container">
+  <div class="header">
+    <h1>Audit Trail</h1>
+    <p>Track all system activities and changes</p>
+  </div>
+
+  <div class="logs-card">
+    <div *ngIf="loading" class="loading">Loading audit logs...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+
+    <div *ngIf="!loading && !error" class="logs-content">
+      <div class="logs-header">
+        <span class="total-count">Total Records: {{ totalElements }}</span>
+        <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>User</th>
+              <th>Entity Type</th>
+              <th>Entity ID</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of auditLogs">
+              <td>{{ formatDate(log.createdAt) }}</td>
+              <td>
+                <span class="action-badge" [ngClass]="getActionClass(log.action)">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td>{{ log.username }}</td>
+              <td>{{ log.entityType }}</td>
+              <td>{{ log.entityId || '-' }}</td>
+              <td>{{ log.ipAddress || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <button 
+          class="pagination-btn" 
+          (click)="previousPage()" 
+          [disabled]="currentPage === 0"
+        >
+          ← Previous
+        </button>
+        <span class="page-numbers">
+          Page {{ currentPage + 1 }} of {{ totalPages }}
+        </span>
+        <button 
+          class="pagination-btn" 
+          (click)="nextPage()" 
+          [disabled]="currentPage >= totalPages - 1"
+        >
+          Next →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

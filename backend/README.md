@@ -32,10 +32,22 @@ The application will start on `http://localhost:8080`
 
 ### 3. Database Seeding
 
-On first startup, the application automatically seeds the database with 10,000 employee records.
+On first startup, the application automatically:
+- Seeds the database with 10,000 employee records
+- Creates a default HR user: `hruser` / `hr123`
+
 The SQLite database file will be created at `./data/employees.db`
 
 ## API Endpoints
+
+### Authentication
+
+- `POST /api/auth/login` - User login
+  - Body: `{ "username": "hruser", "password": "hr123" }`
+  - Returns: JWT token and user details
+- `POST /api/auth/logout` - User logout
+  - Creates audit log entry
+- `GET /api/auth/validate` - Validate current token
 
 ### Employee Management
 
@@ -55,6 +67,14 @@ The SQLite database file will be created at `./data/employees.db`
 
 - `GET /api/analytics/overview` - Get dashboard analytics
   - Returns: total employees, salary statistics, department breakdown, country breakdown, salary distribution
+
+### Audit Trail
+
+- `GET /api/audit` - Get all audit logs (paginated)
+  - Query params: `page`, `size`
+- `GET /api/audit/entity/{type}/{id}` - Get audit logs for specific entity
+- `GET /api/audit/user/{userId}` - Get audit logs for specific user
+- `GET /api/audit/action/{action}` - Get audit logs by action type (LOGIN, LOGOUT, CREATE, UPDATE, DELETE)
 
 ## Running Tests
 

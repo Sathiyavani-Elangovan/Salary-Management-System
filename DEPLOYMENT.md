@@ -42,6 +42,15 @@ After frontend deployment, update Render backend environment:
 - Frontend: `https://your-app.vercel.app`
 - Backend: `https://your-backend.onrender.com`
 
+## Login Credentials
+
+After deployment, use the following credentials to login:
+
+- **Username:** `hruser`
+- **Password:** `hr123`
+
+The HR user is automatically created on first startup with full system access.
+
 ## Notes
 
 - First request may take 30-60 seconds (free tier cold start)

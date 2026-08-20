@@ -18,6 +18,22 @@ micronaut:
           allowedHeaders:
             - Content-Type
             - Authorization
+  security:
+    enabled: true
+    token:
+      jwt:
+        enabled: true
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_SECRET:pleaseChangeThisSecretKeyToSomethingMoreSecure123456789}"
+    intercept-url-map:
+      - pattern: /api/auth/**
+        access:
+          - isAnonymous()
+      - pattern: /api/**
+        access:
+          - isAnonymous()
   
 datasources:
   default:

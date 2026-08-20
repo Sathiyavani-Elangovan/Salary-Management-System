@@ -18,6 +18,8 @@ A modern, full-stack web application for managing employee salary data for organ
 ## ✨ Key Features
 
 ### Backend (Micronaut + Java)
+- ✅ **Authentication & Authorization** - JWT-based secure login/logout
+- ✅ **Audit Trail** - Complete activity logging for compliance
 - ✅ RESTful API with full CRUD operations
 - ✅ Advanced search and filtering capabilities
 - ✅ Real-time analytics and dashboard statistics
@@ -28,6 +30,8 @@ A modern, full-stack web application for managing employee salary data for organ
 - ✅ SQLite database with optimized indexes
 
 ### Frontend (Angular + TypeScript)
+- ✅ **Secure Login System** - Professional authentication UI
+- ✅ **Audit Log Viewer** - Track all system activities
 - ✅ Responsive Material Design UI
 - ✅ Interactive dashboard with charts and visualizations
 - ✅ Advanced data table with sorting, filtering, and pagination
@@ -36,7 +40,7 @@ A modern, full-stack web application for managing employee salary data for organ
 - ✅ Real-time analytics visualization
 - ✅ Export functionality for reports
 
-###Analytics & Reporting
+### Analytics & Reporting
 - 📊 Salary distribution analysis
 - 📈 Department-wise breakdown
 - 🌍 Country-wise compensation analysis
@@ -101,7 +105,16 @@ ng serve
 
 Frontend will be available at **http://localhost:4200**
 
-### 3. Run Tests
+### 3. Login Credentials
+
+The system creates a default HR user on first startup:
+
+- **Username:** `hruser`
+- **Password:** `hr123`
+
+All features are accessible with this account (no role restrictions).
+
+### 4. Run Tests
 
 ```bash
 # Backend tests

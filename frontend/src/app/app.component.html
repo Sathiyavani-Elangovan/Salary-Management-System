@@ -1,5 +1,5 @@
 <div class="app-container">
-  <nav class="navbar">
+  <nav class="navbar" *ngIf="isAuthenticated">
     <div class="nav-content">
       <div class="logo">
         <h2>💼 {{ title }}</h2>
@@ -11,6 +11,19 @@
         <a routerLink="/employees" routerLinkActive="active" (click)="menuOpen = false">
           👥 Employees
         </a>
+        <a routerLink="/audit-logs" routerLinkActive="active" (click)="menuOpen = false">
+          📋 Audit Logs
+        </a>
+      </div>
+      <div class="user-section">
+        <span class="user-info" *ngIf="currentUser">
+          <span class="user-icon">👤</span>
+          <span class="username">{{ currentUser.username }}</span>
+          <span class="user-role">({{ currentUser.role }})</span>
+        </span>
+        <button class="logout-btn" (click)="logout()">
+          Logout 🚪
+        </button>
       </div>
       <button class="menu-toggle" (click)="toggleMenu()">
         <span></span>
@@ -24,7 +37,7 @@
     <router-outlet></router-outlet>
   </main>
 
-  <footer class="footer">
+  <footer class="footer" *ngIf="isAuthenticated">
     <p>&copy; 2026 ACME Corporation. Built with Angular + Micronaut.</p>
   </footer>
 </div>
