@@ -32,6 +32,8 @@ EXPOSE 10000
 # Set environment variables
 ENV MICRONAUT_SERVER_PORT=10000
 ENV MICRONAUT_ENVIRONMENTS=production
+ENV MICRONAUT_SERVER_CORS_ENABLED=true
+ENV MICRONAUT_SERVER_CORS_CONFIGURATIONS_WEB_ALLOWED_ORIGINS=https://salary-management-system-steel.vercel.app
 
 # Run the application
 CMD ["java", "-jar", "app.jar"]

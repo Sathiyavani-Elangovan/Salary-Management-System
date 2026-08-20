@@ -1,6 +1,15 @@
 # Employee Salary Management System
 
-## 🎯 Project Overview
+## � Live Demo
+
+**Frontend:** https://salary-management-system-steel.vercel.app  
+**Backend API:** https://salary-backend-68tg.onrender.com  
+
+> **Note:** First load may take 30-60 seconds as the free tier backend spins up from idle state.
+
+---
+
+## �🎯 Project Overview
 
 A modern, full-stack web application for managing employee salary data for organizations with 10,000+ employees. Built using **Java (Micronaut)** backend and **Angular** frontend, demonstrating AI-first development practices.
 
