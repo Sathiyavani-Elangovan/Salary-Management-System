@@ -4,8 +4,9 @@
 
 **Frontend:** https://salary-management-system-steel.vercel.app  
 **Backend API:** https://salary-backend-68tg.onrender.com  
+**Demo Video:** https://drive.google.com/file/d/1ej2NNDFOLpHCgHd4if6IGNq3xwvFXDt5/view?usp=sharing  
+**GitHub Repository:** https://github.com/Sathiyavani-Elangovan/Salary-Management-System
 
-> **Note:** First load may take 30-60 seconds as the free tier backend spins up from idle state.
 
 ---
 
@@ -18,8 +19,8 @@ A modern, full-stack web application for managing employee salary data for organ
 ## ✨ Key Features
 
 ### Backend (Micronaut + Java)
-- ✅ **Authentication & Authorization** - JWT-based secure login/logout
-- ✅ **Audit Trail** - Complete activity logging for compliance
+- ✅ Authentication & Authorization - JWT-based secure login/logout
+- ✅ Audit Trail - Complete activity logging for compliance
 - ✅ RESTful API with full CRUD operations
 - ✅ Advanced search and filtering capabilities
 - ✅ Real-time analytics and dashboard statistics
@@ -30,8 +31,8 @@ A modern, full-stack web application for managing employee salary data for organ
 - ✅ SQLite database with optimized indexes
 
 ### Frontend (Angular + TypeScript)
-- ✅ **Secure Login System** - Professional authentication UI
-- ✅ **Audit Log Viewer** - Track all system activities
+- ✅ Secure Login System - Professional authentication UI
+- ✅ Audit Log Viewer - Track all system activities
 - ✅ Responsive Material Design UI
 - ✅ Interactive dashboard with charts and visualizations
 - ✅ Advanced data table with sorting, filtering, and pagination

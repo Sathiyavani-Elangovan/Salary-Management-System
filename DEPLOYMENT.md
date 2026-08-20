@@ -13,7 +13,7 @@
      - `MICRONAUT_SERVER_PORT=10000`
      - `MICRONAUT_ENVIRONMENTS=production`
 
-After deployment, copy your backend URL (e.g., `https://salary-backend-xyz.onrender.com`)
+After deployment, copy  backend URL (e.g., `https://salary-backend-xyz.onrender.com`)
 
 ## Frontend Deployment (Vercel)
 
@@ -51,8 +51,3 @@ After deployment, use the following credentials to login:
 
 The HR user is automatically created on first startup with full system access.
 
-## Notes
-
-- First request may take 30-60 seconds (free tier cold start)
-- Database persists across restarts
-- Both platforms offer free tier suitable for assessment
