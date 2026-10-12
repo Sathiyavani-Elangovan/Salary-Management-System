@@ -115,6 +115,51 @@ class EmployeeServiceTest {
     }
 
     @Test
+    void createEmployee_WithWhitespaceInput_NormalizesValues() {
+        EmployeeDTO dto = createValidEmployeeDTO();
+        dto.setFirstName("  john   ");
+        dto.setLastName("  doe  ");
+        dto.setEmail("  JOHN.DOE@ACME.COM  ");
+        dto.setCurrency(" usd ");
+
+        Employee employee = createValidEmployee();
+        employee.setFirstName("john");
+        employee.setLastName("doe");
+        employee.setEmail("john.doe@acme.com");
+        employee.setCurrency("USD");
+
+        when(employeeRepository.existsByEmail("john.doe@acme.com")).thenReturn(false);
+        when(employeeRepository.existsByEmployeeCode(dto.getEmployeeCode())).thenReturn(false);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+
+        Employee result = employeeService.createEmployee(dto);
+
+        assertEquals("john", result.getFirstName());
+        assertEquals("doe", result.getLastName());
+        assertEquals("john.doe@acme.com", result.getEmail());
+        assertEquals("USD", result.getCurrency());
+    }
+
+    @Test
+    void updateEmployee_WithFutureDateJoined_ThrowsException() {
+        UUID id = UUID.randomUUID();
+        EmployeeDTO dto = createValidEmployeeDTO();
+        dto.setDateJoined(LocalDate.now().plusDays(1));
+        Employee existingEmployee = createValidEmployee();
+        existingEmployee.setId(id);
+
+        when(employeeRepository.findById(id)).thenReturn(Optional.of(existingEmployee));
+        when(employeeRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> employeeService.updateEmployee(id, dto)
+        );
+
+        assertTrue(exception.getMessage().contains("Date joined cannot be in the future"));
+    }
+
+    @Test
     void deleteEmployee_WithValidId_SoftDeletesEmployee() {
         // Arrange
         UUID id = UUID.randomUUID();
