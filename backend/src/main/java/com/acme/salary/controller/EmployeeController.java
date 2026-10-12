@@ -6,6 +6,7 @@ import com.acme.salary.service.EmployeeService;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
+import io.micronaut.data.model.Sort;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
@@ -34,16 +35,27 @@ public class EmployeeController {
     }
 
     @Get("/search")
-    public Page<Employee> searchEmployees(
+    public HttpResponse<?> searchEmployees(
             @QueryValue @Nullable String searchTerm,
             @QueryValue @Nullable String department,
             @QueryValue @Nullable String country,
             @QueryValue @Nullable BigDecimal minSalary,
             @QueryValue @Nullable BigDecimal maxSalary,
             @QueryValue(defaultValue = "0") int page,
-            @QueryValue(defaultValue = "20") int size) {
-        Pageable pageable = Pageable.from(page, size);
-        return employeeService.searchEmployees(searchTerm, department, country, minSalary, maxSalary, pageable);
+            @QueryValue(defaultValue = "20") int size,
+            @QueryValue(defaultValue = "lastName") String sort,
+            @QueryValue(defaultValue = "asc") String direction) {
+        String sortField = List.of("lastName", "firstName", "salary", "department", "dateJoined")
+                .contains(sort) ? sort : "lastName";
+        Sort.Order.Direction sortDirection = "desc".equalsIgnoreCase(direction)
+                ? Sort.Order.Direction.DESC : Sort.Order.Direction.ASC;
+        Pageable pageable = Pageable.from(page, size).order(sortField, sortDirection);
+        try {
+            return HttpResponse.ok(employeeService.searchEmployees(
+                    searchTerm, department, country, minSalary, maxSalary, pageable));
+        } catch (IllegalArgumentException e) {
+            return HttpResponse.badRequest(e.getMessage());
+        }
     }
 
     @Get("/{id}")
@@ -54,14 +66,21 @@ public class EmployeeController {
     }
 
     @Post
-    @Status(HttpStatus.CREATED)
-    public Employee createEmployee(@Body @Valid EmployeeDTO dto) {
-        return employeeService.createEmployee(dto);
+    public HttpResponse<?> createEmployee(@Body @Valid EmployeeDTO dto) {
+        try {
+            return HttpResponse.created(employeeService.createEmployee(dto));
+        } catch (IllegalArgumentException e) {
+            return HttpResponse.badRequest(e.getMessage());
+        }
     }
 
     @Put("/{id}")
-    public Employee updateEmployee(@PathVariable UUID id, @Body @Valid EmployeeDTO dto) {
-        return employeeService.updateEmployee(id, dto);
+    public HttpResponse<?> updateEmployee(@PathVariable UUID id, @Body @Valid EmployeeDTO dto) {
+        try {
+            return HttpResponse.ok(employeeService.updateEmployee(id, dto));
+        } catch (IllegalArgumentException e) {
+            return HttpResponse.badRequest(e.getMessage());
+        }
     }
 
     @Delete("/{id}")

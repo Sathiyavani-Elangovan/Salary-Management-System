@@ -3,10 +3,12 @@ package com.acme.salary.service;
 import com.acme.salary.dto.EmployeeDTO;
 import com.acme.salary.model.Employee;
 import com.acme.salary.repository.EmployeeRepository;
+import io.micronaut.data.model.Pageable;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -117,27 +119,91 @@ class EmployeeServiceTest {
     @Test
     void createEmployee_WithWhitespaceInput_NormalizesValues() {
         EmployeeDTO dto = createValidEmployeeDTO();
-        dto.setFirstName("  john   ");
+        dto.setEmployeeCode(" EMP001 ");
+        dto.setFirstName("  john   smith  ");
         dto.setLastName("  doe  ");
         dto.setEmail("  JOHN.DOE@ACME.COM  ");
         dto.setCurrency(" usd ");
 
-        Employee employee = createValidEmployee();
-        employee.setFirstName("john");
-        employee.setLastName("doe");
-        employee.setEmail("john.doe@acme.com");
-        employee.setCurrency("USD");
-
         when(employeeRepository.existsByEmail("john.doe@acme.com")).thenReturn(false);
-        when(employeeRepository.existsByEmployeeCode(dto.getEmployeeCode())).thenReturn(false);
-        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+        when(employeeRepository.existsByEmployeeCode("EMP001")).thenReturn(false);
+        when(employeeRepository.save(any(Employee.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Employee result = employeeService.createEmployee(dto);
+        employeeService.createEmployee(dto);
 
-        assertEquals("john", result.getFirstName());
-        assertEquals("doe", result.getLastName());
-        assertEquals("john.doe@acme.com", result.getEmail());
-        assertEquals("USD", result.getCurrency());
+        ArgumentCaptor<Employee> savedEmployee = ArgumentCaptor.forClass(Employee.class);
+        verify(employeeRepository).save(savedEmployee.capture());
+        assertEquals("EMP001", savedEmployee.getValue().getEmployeeCode());
+        assertEquals("john smith", savedEmployee.getValue().getFirstName());
+        assertEquals("doe", savedEmployee.getValue().getLastName());
+        assertEquals("john.doe@acme.com", savedEmployee.getValue().getEmail());
+        assertEquals("USD", savedEmployee.getValue().getCurrency());
+        assertEquals(new BigDecimal("100000.00"), savedEmployee.getValue().getSalary());
+        assertEquals("  john   smith  ", dto.getFirstName());
+        assertEquals("  JOHN.DOE@ACME.COM  ", dto.getEmail());
+        assertEquals(" usd ", dto.getCurrency());
+        assertEquals(" EMP001 ", dto.getEmployeeCode());
+    }
+
+    @Test
+    void createEmployee_WithExperienceAboveLimit_ThrowsException() {
+        EmployeeDTO dto = createValidEmployeeDTO();
+        dto.setExperienceYears(80);
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> employeeService.createEmployee(dto)
+        );
+
+        assertEquals("Experience years must be between 0 and 50", exception.getMessage());
+        assertEquals(80, dto.getExperienceYears());
+        verifyNoInteractions(employeeRepository);
+    }
+
+    @Test
+    void createEmployee_WithNameTooShortAfterNormalization_ThrowsException() {
+        EmployeeDTO dto = createValidEmployeeDTO();
+        dto.setFirstName(" J ");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> employeeService.createEmployee(dto)
+        );
+
+        assertEquals("First name must be between 2 and 50 characters", exception.getMessage());
+        verifyNoInteractions(employeeRepository);
+    }
+
+    @Test
+    void createEmployee_WithEmployeeCodeTooShortAfterNormalization_ThrowsException() {
+        EmployeeDTO dto = createValidEmployeeDTO();
+        dto.setEmployeeCode(" AB ");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> employeeService.createEmployee(dto)
+        );
+
+        assertEquals("Employee code must be between 3 and 20 characters", exception.getMessage());
+        verifyNoInteractions(employeeRepository);
+    }
+
+    @Test
+    void updateEmployee_WithUnchangedEmailDifferentCase_DoesNotCheckDuplicate() {
+        UUID id = UUID.randomUUID();
+        EmployeeDTO dto = createValidEmployeeDTO();
+        dto.setEmail("JOHN.DOE@ACME.COM");
+        Employee existingEmployee = createValidEmployee();
+        existingEmployee.setId(id);
+        existingEmployee.setEmail("John.Doe@Acme.com");
+
+        when(employeeRepository.findById(id)).thenReturn(Optional.of(existingEmployee));
+        when(employeeRepository.update(any(Employee.class))).thenReturn(existingEmployee);
+
+        employeeService.updateEmployee(id, dto);
+
+        verify(employeeRepository, never()).existsByEmail(any());
     }
 
     @Test
@@ -157,6 +223,18 @@ class EmployeeServiceTest {
         );
 
         assertTrue(exception.getMessage().contains("Date joined cannot be in the future"));
+    }
+
+    @Test
+    void searchEmployees_WithMinimumSalaryAboveMaximum_ThrowsException() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> employeeService.searchEmployees(null, null, null,
+                new BigDecimal("90000"), new BigDecimal("80000"), Pageable.from(0, 20))
+        );
+
+        assertEquals("Minimum salary cannot exceed maximum salary", exception.getMessage());
+        verifyNoInteractions(employeeRepository);
     }
 
     @Test
@@ -183,16 +261,16 @@ class EmployeeServiceTest {
         UUID id = UUID.randomUUID();
         Employee employee = createValidEmployee();
         employee.setId(id);
-        employee.setSalary(new BigDecimal("100000"));
+        employee.setSalary(new BigDecimal("1000.01"));
         
         when(employeeRepository.findById(id)).thenReturn(Optional.of(employee));
         when(employeeRepository.update(any(Employee.class))).thenReturn(employee);
 
         // Act
-        employeeService.bulkSalaryAdjustment(java.util.List.of(id), new BigDecimal("10"));
+        employeeService.bulkSalaryAdjustment(java.util.List.of(id), new BigDecimal("3.333"));
 
         // Assert
-        assertTrue(employee.getSalary().compareTo(new BigDecimal("100000")) > 0);
+        assertEquals(new BigDecimal("1033.34"), employee.getSalary());
         verify(employeeRepository).update(employee);
     }
 

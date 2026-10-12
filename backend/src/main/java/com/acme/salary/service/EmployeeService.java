@@ -49,7 +49,8 @@ public class EmployeeService {
         EmployeeDTO normalized = normalizeEmployeeInput(dto);
         validateEmployeeInput(normalized);
 
-        if (!employee.getEmail().equals(normalized.getEmail()) && employeeRepository.existsByEmail(normalized.getEmail())) {
+        if ((employee.getEmail() == null || !employee.getEmail().equalsIgnoreCase(normalized.getEmail()))
+            && employeeRepository.existsByEmail(normalized.getEmail())) {
             throw new IllegalArgumentException("Email " + normalized.getEmail() + " is already in use");
         }
 
@@ -89,29 +90,16 @@ public class EmployeeService {
 
     public Page<Employee> searchEmployees(String searchTerm, String department, String country,
                                           BigDecimal minSalary, BigDecimal maxSalary, Pageable pageable) {
-        boolean hasSearchTerm = searchTerm != null && !searchTerm.isEmpty();
-        boolean hasDepartment = department != null && !department.isEmpty();
-        boolean hasCountry = country != null && !country.isEmpty();
-
-        if (hasSearchTerm && hasDepartment && hasCountry) {
-            return employeeRepository.searchByNameAndDepartmentAndCountry(searchTerm, department, country, pageable);
-        } else if (hasSearchTerm && hasDepartment) {
-            return employeeRepository.searchByNameAndDepartment(searchTerm, department, pageable);
-        } else if (hasSearchTerm && hasCountry) {
-            return employeeRepository.searchByNameAndCountry(searchTerm, country, pageable);
-        } else if (hasSearchTerm) {
-            return employeeRepository.searchByName(searchTerm, pageable);
-        } else if (hasDepartment && hasCountry) {
-            return employeeRepository.findByDepartmentAndCountry(department, country, pageable);
-        } else if (hasDepartment) {
-            return employeeRepository.findByDepartment(department, pageable);
-        } else if (hasCountry) {
-            return employeeRepository.findByCountry(country, pageable);
-        } else if (minSalary != null && maxSalary != null) {
-            return employeeRepository.findBySalaryBetween(minSalary, maxSalary, pageable);
-        } else {
-            return findAll(pageable);
+        if (minSalary != null && maxSalary != null && minSalary.compareTo(maxSalary) > 0) {
+            throw new IllegalArgumentException("Minimum salary cannot exceed maximum salary");
         }
+
+        return employeeRepository.searchActiveEmployees(
+                blankToNull(searchTerm), blankToNull(department), blankToNull(country), minSalary, maxSalary, pageable);
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     public List<Employee> findAllActive() {
@@ -132,7 +120,7 @@ public class EmployeeService {
                     .orElseThrow(() -> new IllegalArgumentException("Employee not found with id: " + id));
 
             BigDecimal adjustment = employee.getSalary().multiply(percentage.divide(new BigDecimal("100")));
-            BigDecimal newSalary = employee.getSalary().add(adjustment);
+            BigDecimal newSalary = employee.getSalary().add(adjustment).setScale(2, RoundingMode.HALF_UP);
 
             if (newSalary.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("Salary adjustment would result in negative or zero salary for employee: " + employee.getEmployeeCode());
@@ -148,27 +136,28 @@ public class EmployeeService {
             throw new IllegalArgumentException("Employee details are required");
         }
 
-        dto.setEmployeeCode(normalizeRequired(dto.getEmployeeCode(), "Employee code"));
-        dto.setFirstName(normalizeName(dto.getFirstName(), "First name"));
-        dto.setLastName(normalizeName(dto.getLastName(), "Last name"));
-        dto.setEmail(normalizeEmail(dto.getEmail()));
-        dto.setDepartment(normalizeRequired(dto.getDepartment(), "Department"));
-        dto.setCountry(normalizeRequired(dto.getCountry(), "Country"));
-        dto.setJobTitle(normalizeRequired(dto.getJobTitle(), "Job title"));
-        dto.setCurrency(normalizeRequired(dto.getCurrency(), "Currency").toUpperCase(Locale.ROOT));
-        dto.setGender(normalizeRequired(dto.getGender(), "Gender"));
-        dto.setPerformanceRating(normalizeRequired(dto.getPerformanceRating(), "Performance rating"));
+        EmployeeDTO normalized = new EmployeeDTO();
+        normalized.setId(dto.getId());
+        normalized.setEmployeeCode(normalizeRequired(dto.getEmployeeCode(), "Employee code"));
+        normalized.setFirstName(normalizeName(dto.getFirstName(), "First name"));
+        normalized.setLastName(normalizeName(dto.getLastName(), "Last name"));
+        normalized.setEmail(normalizeEmail(dto.getEmail()));
+        normalized.setDepartment(normalizeRequired(dto.getDepartment(), "Department"));
+        normalized.setCountry(normalizeRequired(dto.getCountry(), "Country"));
+        normalized.setJobTitle(normalizeRequired(dto.getJobTitle(), "Job title"));
+        normalized.setCurrency(normalizeRequired(dto.getCurrency(), "Currency").toUpperCase(Locale.ROOT));
+        normalized.setDateJoined(dto.getDateJoined());
+        normalized.setGender(normalizeRequired(dto.getGender(), "Gender"));
+        normalized.setExperienceYears(dto.getExperienceYears());
+        normalized.setPerformanceRating(normalizeRequired(dto.getPerformanceRating(), "Performance rating"));
+        normalized.setIsActive(dto.getIsActive());
 
         if (dto.getSalary() == null) {
             throw new IllegalArgumentException("Salary is required");
         }
-        dto.setSalary(dto.getSalary().setScale(2, RoundingMode.HALF_UP));
+        normalized.setSalary(dto.getSalary().setScale(2, RoundingMode.HALF_UP));
 
-        if (dto.getExperienceYears() != null) {
-            dto.setExperienceYears(Math.max(0, Math.min(dto.getExperienceYears(), 50)));
-        }
-
-        return dto;
+        return normalized;
     }
 
     private void validateEmployeeInput(EmployeeDTO dto) {
@@ -182,6 +171,10 @@ public class EmployeeService {
         validateRequiredField(dto.getCurrency(), "Currency");
         validateRequiredField(dto.getGender(), "Gender");
         validateRequiredField(dto.getPerformanceRating(), "Performance rating");
+        validateLength(dto.getEmployeeCode(), 3, 20, "Employee code");
+        validateLength(dto.getFirstName(), 2, 50, "First name");
+        validateLength(dto.getLastName(), 2, 50, "Last name");
+        validateLength(dto.getCurrency(), 3, 3, "Currency");
 
         if (dto.getSalary() == null || dto.getSalary().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Salary must be greater than zero");
@@ -194,8 +187,15 @@ public class EmployeeService {
             throw new IllegalArgumentException("Date joined cannot be in the future");
         }
 
-        if (dto.getExperienceYears() != null && (dto.getExperienceYears() < 0 || dto.getExperienceYears() > 50)) {
+        if (dto.getExperienceYears() == null || dto.getExperienceYears() < 0 || dto.getExperienceYears() > 50) {
             throw new IllegalArgumentException("Experience years must be between 0 and 50");
+        }
+    }
+
+    private void validateLength(String value, int minLength, int maxLength, String fieldName) {
+        if (value.length() < minLength || value.length() > maxLength) {
+            throw new IllegalArgumentException(
+                    fieldName + " must be between " + minLength + " and " + maxLength + " characters");
         }
     }
 
