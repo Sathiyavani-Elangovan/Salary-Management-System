@@ -1,6 +1,7 @@
 package com.acme.salary.repository;
 
 import com.acme.salary.model.Employee;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.annotation.Query;
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.jpa.repository.JpaRepository;
@@ -29,6 +30,24 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
     // Salary range queries
     Page<Employee> findBySalaryBetween(BigDecimal minSalary, BigDecimal maxSalary, Pageable pageable);
+
+    @Query(value = "SELECT e FROM Employee e WHERE e.isActive = true " +
+           "AND (:searchTerm IS NULL OR LOWER(e.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+           "OR LOWER(e.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "AND (:department IS NULL OR e.department = :department) " +
+           "AND (:country IS NULL OR e.country = :country) " +
+           "AND (:minSalary IS NULL OR e.salary >= :minSalary) " +
+           "AND (:maxSalary IS NULL OR e.salary <= :maxSalary)",
+           countQuery = "SELECT COUNT(e) FROM Employee e WHERE e.isActive = true " +
+           "AND (:searchTerm IS NULL OR LOWER(e.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
+           "OR LOWER(e.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "AND (:department IS NULL OR e.department = :department) " +
+           "AND (:country IS NULL OR e.country = :country) " +
+           "AND (:minSalary IS NULL OR e.salary >= :minSalary) " +
+           "AND (:maxSalary IS NULL OR e.salary <= :maxSalary)")
+    Page<Employee> searchActiveEmployees(@Nullable String searchTerm, @Nullable String department,
+                                         @Nullable String country, @Nullable BigDecimal minSalary,
+                                         @Nullable BigDecimal maxSalary, Pageable pageable);
 
     // Search by name (case-insensitive)
     @Query(value = "SELECT e FROM Employee e WHERE LOWER(e.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(e.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))",

@@ -29,6 +29,10 @@ export class EmployeeListComponent implements OnInit {
   searchTerm = '';
   selectedDepartment = '';
   selectedCountry = '';
+  minSalary: number | null = null;
+  maxSalary: number | null = null;
+  sortBy = 'lastName';
+  sortDirection = 'asc';
   private searchSubject = new Subject<string>();
 
   departments = ['Engineering', 'Sales', 'Marketing', 'Finance', 'Human Resources', 'Operations', 'Customer Support', 'Product Management', 'Legal'];
@@ -56,25 +60,20 @@ export class EmployeeListComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    if (this.searchTerm || this.selectedDepartment || this.selectedCountry) {
-      this.employeeService.searchEmployees(
-        this.searchTerm || undefined,
-        this.selectedDepartment || undefined,
-        this.selectedCountry || undefined,
-        undefined,
-        undefined,
-        this.currentPage,
-        this.pageSize
-      ).subscribe({
-        next: (response) => this.handleResponse(response),
-        error: (err) => this.handleError(err)
-      });
-    } else {
-      this.employeeService.getEmployees(this.currentPage, this.pageSize).subscribe({
-        next: (response) => this.handleResponse(response),
-        error: (err) => this.handleError(err)
-      });
-    }
+    this.employeeService.searchEmployees(
+      this.searchTerm || undefined,
+      this.selectedDepartment || undefined,
+      this.selectedCountry || undefined,
+      this.minSalary ?? undefined,
+      this.maxSalary ?? undefined,
+      this.currentPage,
+      this.pageSize,
+      this.sortBy,
+      this.sortDirection
+    ).subscribe({
+      next: (response) => this.handleResponse(response),
+      error: (err) => this.handleError(err)
+    });
   }
 
   private handleResponse(response: PageResponse<Employee>): void {
@@ -109,6 +108,10 @@ export class EmployeeListComponent implements OnInit {
     this.searchTerm = '';
     this.selectedDepartment = '';
     this.selectedCountry = '';
+    this.minSalary = null;
+    this.maxSalary = null;
+    this.sortBy = 'lastName';
+    this.sortDirection = 'asc';
     this.currentPage = 0;
     this.loadEmployees();
   }
